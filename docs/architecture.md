@@ -410,7 +410,7 @@ This workflow is intended to simulate real backend and security engineering prac
 
 # Disclaimer
 
-OpenPayStack is an educational engineering project.
+OpenPayStack is an educational engineering projec t.
 
 It does NOT:
 - process real money
