@@ -1,7 +1,50 @@
-.env
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
 venv/
-node_modules/
+.env
+
+# IDEs
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Python Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# SQLAlchemy / Alembic
+*.db
+
+# Build Artifacts
+build/
+dist/
+*.egg-info/
+
+# Environment Files
+.env.*
+!.env.example
+
+# Docker
+docker/postgres_data/
+
+# MyPy / Type Checkers
+.mypy_cache/
+
+# Ruff / Linting
+.ruff_cache/
+
+#extra dev tools
 .claude
 .refact
 

@@ -1,6 +1,7 @@
 from sqlalchemy import Column , String , Boolean , DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 import uuid
 from app.core.database import Base
@@ -48,3 +49,11 @@ class User(Base):
         DateTime(timezone = True),
         server_default = func.now()
     )
+
+    wallet = relationship(
+        "Wallet",
+        back_populates = "user",
+        uselist = False
+    )
+
+    #relationship can creates python level navigation between objects.

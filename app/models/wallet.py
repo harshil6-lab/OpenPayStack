@@ -5,6 +5,8 @@ from sqlalchemy.sql import func
 import uuid
 from app.core.database import Base
 
+from sqlalchemy.orm import relationship
+
 class Wallet(Base):
 
     __tablename__ = "wallets"
@@ -17,7 +19,7 @@ class Wallet(Base):
 
     user_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("user.id"),   #Wallet cannot exist without any users.
+        ForeignKey("users.id"),   #Wallet cannot exist without any users.
         nullable = False
     )
 
@@ -39,4 +41,9 @@ class Wallet(Base):
     created_at = Column(
         DateTime(timezone = True),
         server_default = func.now()
+    )
+
+    user = relationship(
+        "User",
+        back_populates = "wallet"
     )
