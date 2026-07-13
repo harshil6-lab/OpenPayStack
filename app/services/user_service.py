@@ -10,7 +10,7 @@ def register_user(db:Session,payload: UserRegisterRequest):
     existing_user = (db.query(User).filter((User.email == payload.email)| (User.username == payload.username)).first())
 
     if existing_user :
-        raise ValueError("user already exists")
+        raise ValueError("credentials already exists")
     
     user = User(
         email = payload.email,
