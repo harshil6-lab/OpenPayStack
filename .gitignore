@@ -48,3 +48,6 @@ docker/postgres_data/
 .claude
 .refact
 
+#manual testing files
+testing_config.py
+testing_jwt.py

@@ -1,187 +1,44 @@
-# Authentication Module
+## JWT Authentication (Current Status)
+
+### Completed
+
+- JWT Access Token Generation
+- JWT Signature Verification
+- Standard Claims
+  - sub
+  - exp
+  - iat
+  - jti
+- Secure Configuration using Environment Variables
+- Token Validation
+- Generic Authentication Errors
+
+### Security Validation
+
+The authentication system has been tested against:
+
+- Payload Tampering
+- Signature Modification
+- Invalid Secret Key
+- Expired Tokens
+- Missing Claims
+- Invalid Authorization Header
+- Random/Malformed Tokens
+- Algorithm Confusion Awareness
+- Replay Attack Analysis
+- Token Theft Analysis
+
+### Current Limitations
+
+The current implementation intentionally does not yet support:
 
-## Overview
-
-Authentication verifies the identity of a user before allowing access to protected resources.
-
-OpenPayStack follows a layered authentication architecture inspired by production fintech systems.
-
----
-
-# Objectives
-
-- Secure user registration
-- Secure login
-- Password hashing
-- Password verification
-- JWT Authentication (Upcoming)
-- Refresh Tokens (Upcoming)
-- RBAC (Upcoming)
-- OAuth2 (Upcoming)
-- MFA (Upcoming)
-
----
-
-# Current Authentication Flow
-
-## Registration
-
-Client
-
-↓
-
-POST /auth/register
-
-↓
-
-Request Validation
-
-↓
-
-Check Existing User
-
-↓
-
-Hash Password (bcrypt)
-
-↓
-
-Create User
-
-↓
-
-Create Wallet
-
-↓
-
-Commit Transaction
-
-↓
-
-Return Safe Response
-
----
-
-## Login
-
-Client
-
-↓
-
-POST /auth/login
-
-↓
-
-Validate Request
-
-↓
-
-Find User
-
-↓
-
-Verify Password
-
-↓
-
-Return Safe Response
-
----
-
-# Current Endpoints
-
-POST /auth/register
-
-Creates a new user and automatically provisions a wallet.
-
----
-
-POST /auth/login
-
-Authenticates user credentials.
-
-(Currently returns user information.)
-
-JWT integration will replace this response.
-
----
-
-# Password Security
-
-Passwords are never stored.
-
-Passwords are hashed using bcrypt.
-
-Verification is performed using bcrypt.verify().
-
----
-
-# Security Decisions
-
-User enumeration prevention.
-
-Instead of:
-
-User not found
-
-or
-
-Wrong password
-
-API always returns
-
-Invalid credentials
-
----
-
-# Current Architecture
-
-Client
-
-↓
-
-FastAPI Router
-
-↓
-
-Service Layer
-
-↓
-
-SQLAlchemy
-
-↓
-
-PostgreSQL
-
----
-
-# Future Roadmap
-
-- JWT Access Tokens
 - Refresh Tokens
 - Token Rotation
+- Token Revocation
 - Logout
-- Token Blacklisting
-- Redis
-- OAuth2
-- MFA
-- Passkeys
-- RBAC
-- API Keys
-- Device Trust
-- Session Management
+- Redis Blacklisting
+- Device Binding
+- Multi-Factor Authentication (MFA)
+- Role-Based Access Control (RBAC)
 
----
-
-# Lessons Learned
-
-- Layered Architecture
-- Dependency Injection
-- Password Hashing
-- Password Verification
-- Secure Response Models
-- Generic Error Responses
-- Docker Infrastructure
-- Database Connectivity
-- Production-style Debugging
+These features will be added in subsequent modules.
