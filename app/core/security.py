@@ -50,12 +50,14 @@ def verify_access_token(token:str)->TokenPayload:
         if not subject:
             raise credentials_exception
         
-        return TokenPayload({
-            "sub" : payload["sub"],
-            "email" : payload.get("email"),
-            "role" : payload.get("role"),
-            "jti" : payload.get("jti")
-        })
+        data = {
+                "sub" : payload["sub"],
+                "email" : payload.get("email"),
+                "role" : payload.get("role"),
+                 "jti" : payload.get("jti")
+            }
+        print(data)
+        return TokenPayload(**data)
     
     except JWTError:
         raise credentials_exception   
