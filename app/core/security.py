@@ -26,7 +26,7 @@ def create_access_token(data : dict , expires_delta: timedelta)->str:
         {
             "exp" : expire,
             "iat" : datetime.now(timezone.utc),
-            "jid" : str(uuid.uuid4())
+            "jti" : str(uuid.uuid4())
         }
     )
 
@@ -46,16 +46,18 @@ def verify_access_token(token:str)->TokenPayload:
     try:
         payload = jwt.decode(token , settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         subject = payload.get("sub")
-
+        
         if not subject:
             raise credentials_exception
         
-        return TokenPayload({
-            "sub" : payload["sub"],
-            "email" : payload.get("email"),
-            "role" : payload.get("role"),
-            "jti" : payload.get("jti")
-        })
+        data = {
+                "sub" : payload["sub"],
+                "email" : payload.get("email"),
+                "role" : payload.get("role"),
+                 "jti" : payload.get("jti")
+            }
+        print(data)
+        return TokenPayload(**data)
     
     except JWTError:
         raise credentials_exception   
