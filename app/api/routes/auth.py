@@ -25,6 +25,3 @@ def login(payload:LoginRequest,db:Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=401,detail=str(e))
 
-@router.get("/me",response_model = UserResponse)
-def get_current_user(current_user: UserResponse = Depends(get_current_user)):
-    return current_user
