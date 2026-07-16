@@ -1,5 +1,7 @@
 from pydantic import BaseModel , EmailStr , Field
 from uuid import UUID
+from datetime import datetime
+
 class UserRegisterRequest(BaseModel):
     email : EmailStr
     username : str = Field(
@@ -25,3 +27,14 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
       access_token : str
       token_type : str = "bearer"
+
+class CurrentUserResponse(BaseModel):
+    id : UUID
+    email : str
+    username : str
+    is_verified : bool
+    role : str
+    created_at : datetime
+
+    class Config:
+        from_attributes = True

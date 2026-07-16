@@ -33,7 +33,7 @@ def register_user(db:Session,payload: UserRegisterRequest):
     return user
 
 def login_user(db:Session,payload: LoginRequest):
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(User.email == payload.username).first()
     
     if not user: 
         raise ValueError("Invalid credentials")
@@ -47,6 +47,6 @@ def login_user(db:Session,payload: LoginRequest):
         "role" : user.role
     }
 
-    create_token = create_access_token(claim,expires_delta=timedelta(seconds=60))
+    create_token = create_access_token(claim,expires_delta=timedelta(minutes=15))
 
     return Token_JWT(access_token=create_token,token_type="bearer")
