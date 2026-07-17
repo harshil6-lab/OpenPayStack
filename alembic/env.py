@@ -18,7 +18,7 @@ if config.config_file_name is not None:
 from app.core.database import Base
 from app.models.user import User
 from app.models.wallet import Wallet 
-
+from app.models.sessions import Session
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
