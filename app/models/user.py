@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
 
+
+
 class User(Base):
    
     __tablename__ = "users"
@@ -55,5 +57,6 @@ class User(Base):
         back_populates = "user",
         uselist = False
     )
-
+    
+    sessions = relationship("Session",back_populates="user",cascade="all,delete-orphan")
     #relationship can creates python level navigation between objects.

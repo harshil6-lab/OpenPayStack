@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from config.settings import settings
-import uuid
+from uuid import uuid4
 from jose import jwt, JWTError
 from app.schemas.token import Token as TokenPayload
 from fastapi import HTTPException, status
@@ -15,25 +15,27 @@ def hash_password(password: str) -> str:
 def verify_password( plain_password : str,hashed_password : str)-> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+
+#generic function to create tokens
+def create_token(data:dict,expires_delta: timedelta,token_type:str)-> tuple[str,str]:
+    jti = str(uuid4())
+    claims = data.copy()
+
+    claims.update({
+    "type": token_type,
+    "jti": jti,
+    "iat": datetime.now(timezone.utc),
+    "exp": datetime.now(timezone.utc) + expires_delta,
+    })
+
+    token =  jwt.encode(claims, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return token,jti
+
 #access token generation and verification
 
 def create_access_token(data : dict , expires_delta: timedelta)->str:
-    to_encode = data.copy()
-
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
-
-    to_encode.update(
-        {
-            "exp" : expire,
-            "iat" : datetime.now(timezone.utc),
-            "jti" : str(uuid.uuid4())
-        }
-    )
-
-
-    encoded_jwt = jwt.encode(to_encode , settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-
-    return encoded_jwt
+    
+    return create_token(data=data , expires_delta = timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),token_type="access")
 
 #veriy jwt token
 def verify_access_token(token:str)->TokenPayload:
@@ -61,3 +63,6 @@ def verify_access_token(token:str)->TokenPayload:
     
     except JWTError:
         raise credentials_exception   
+    
+def create_refresh_token(data: dict,expires_delta:timedelta):
+    return create_token(data=data,expires_delta=timedelta(days = settings.REFRESH_TOKEN_EXPIRE_DAYS),token_type="refresh")
