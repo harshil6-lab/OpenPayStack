@@ -1,9 +1,9 @@
 from app.core.database import SessionLocal
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from app.core.security import verify_access_token
 from fastapi import HTTPException, status
 from app.models.user import User
+from app.services.token_service import TokenService
 
 def get_db():
     db = SessionLocal()
@@ -17,9 +17,8 @@ def get_db():
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 async def get_current_user(token: str = Depends(oauth2_scheme), db=Depends(get_db)):
     
-    
-    token = verify_access_token(token)
-
+    token_service = TokenService(db)
+    payload = token_service.verify_access_token(token)
     user = db.query(User).filter(User.id == token.sub).first()
 
     if not user :

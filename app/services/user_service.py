@@ -7,10 +7,10 @@ from app.schemas.user import UserRegisterRequest , UserResponse , LoginResponse 
 from app.core.security import hash_password
 from app.core.security import verify_password
 
-from app.core.security import create_access_token , create_refresh_token
 from app.schemas.jwt_token import Token_JWT
 from datetime import timedelta , timezone
 from datetime import datetime
+from app.services.token_service import TokenService
 
 
 from config.settings import settings
@@ -45,24 +45,6 @@ def login_user(db:Session,payload: LoginRequest):
     if not verify_password(payload.password,user.hashed_password):
         raise ValueError("Invalid credentials")
     
-    claim = {
-        "sub" : str(user.id),
-        "email" : user.email,
-        "role" : user.role
-    }
+    token_service = TokenService(db)
 
-    access_token,_ = create_access_token({
-        "sub" : str(user.id),
-        "email" : user.email,
-        "role" : user.role
-    },expires_delta=timedelta(minutes=15))
-
-    refresh_token,refresh_jti = create_refresh_token({
-        "sub" : str(user.id)
-    },expires_delta=timedelta(days = 30))
-
-    session = UserSession(user_id = user.id , refresh_jti = refresh_jti ,expires_at = datetime.now(timezone.utc)+timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
-    db.add(session)
-    db.commit()
-    db.refresh(session)
-    return Token_JWT(access_token=access_token,refresh_token=refresh_token,token_type="bearer")
+    return token_service.generate_token_pair(user)

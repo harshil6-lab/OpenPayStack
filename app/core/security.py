@@ -17,7 +17,7 @@ def verify_password( plain_password : str,hashed_password : str)-> bool:
 
 
 #generic function to create tokens
-def create_token(data:dict,expires_delta: timedelta,token_type:str)-> tuple[str,str]:
+def encode_token(data:dict,expires_delta: timedelta,token_type:str)-> tuple[str,str]:
     jti = str(uuid4())
     claims = data.copy()
 
@@ -31,14 +31,7 @@ def create_token(data:dict,expires_delta: timedelta,token_type:str)-> tuple[str,
     token =  jwt.encode(claims, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return token,jti
 
-#access token generation and verification
-
-def create_access_token(data : dict , expires_delta: timedelta)->str:
-    
-    return create_token(data=data , expires_delta = timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),token_type="access")
-
-#veriy jwt token
-def verify_access_token(token:str)->TokenPayload:
+def decode_token(token:str)->TokenPayload:
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,5 +57,3 @@ def verify_access_token(token:str)->TokenPayload:
     except JWTError:
         raise credentials_exception   
     
-def create_refresh_token(data: dict,expires_delta:timedelta):
-    return create_token(data=data,expires_delta=timedelta(days = settings.REFRESH_TOKEN_EXPIRE_DAYS),token_type="refresh")
