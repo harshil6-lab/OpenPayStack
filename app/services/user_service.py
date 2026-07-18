@@ -14,37 +14,43 @@ from app.services.token_service import TokenService
 
 
 from config.settings import settings
-def register_user(db:Session,payload: UserRegisterRequest):
-    existing_user = (db.query(User).filter((User.email == payload.email)| (User.username == payload.username)).first())
 
-    if existing_user :
-        raise ValueError("credentials already exists")
+class UserService:
     
-    user = User(
-        email = payload.email,
-        username = payload.username,
-        hashed_password=hash_password(payload.password)
-    )
+    def __init__(self,db:Session):
+        self.db = db
 
-    db.add(user)
-    db.flush()
+    def register_user(self,payload: UserRegisterRequest):
+            existing_user = (self.db.query(User).filter((User.email == payload.email)| (User.username == payload.username)).first())
 
-    wallet = Wallet(user_id = user.id)
-    db.add(wallet)
-    db.commit()
-    db.refresh(user)
+            if existing_user :
+                raise ValueError("credentials already exists")
+            
+            user = User(
+                email = payload.email,
+                username = payload.username,
+                hashed_password=hash_password(payload.password)
+            )
 
-    return user
+            self.db.add(user)
+            self.db.flush()
 
-def login_user(db:Session,payload: LoginRequest):
-    user = db.query(User).filter(User.email == payload.username).first()
-    
-    if not user: 
-        raise ValueError("Invalid credentials")
-    
-    if not verify_password(payload.password,user.hashed_password):
-        raise ValueError("Invalid credentials")
-    
-    token_service = TokenService(db)
+            wallet = Wallet(user_id = user.id)
+            self.db.add(wallet)
+            self.db.commit()
+            self.db.refresh(user)
 
-    return token_service.generate_token_pair(user)
+            return user
+
+    def login_user(self,payload: LoginRequest):
+            user = self.db.query(User).filter(User.email == payload.username).first()
+            
+            if not user: 
+                raise ValueError("Invalid credentials")
+            
+            if not verify_password(payload.password,user.hashed_password):
+                raise ValueError("Invalid credentials")
+            
+            token_service = TokenService(self.db)
+
+            return token_service.generate_token_pair(user)

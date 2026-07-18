@@ -21,7 +21,7 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class LoginRequest(BaseModel):
-     email : EmailStr
+     username : EmailStr
      password  : str = Field(min_length = 8 , max_length = 128)
 
 class LoginResponse(BaseModel):
