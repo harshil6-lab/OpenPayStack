@@ -7,6 +7,10 @@ from app.schemas.user import UserRegisterRequest,UserResponse,LoginResponse,Logi
 from app.api.dependencies import get_current_user
 from fastapi.security import OAuth2PasswordRequestForm
 from app.services.user_service import UserService
+from app.services.token_service import TokenService
+from app.schemas.jwt_token import Token_JWT
+from app.schemas.user import RefreshTokenRequest
+
 
 router = APIRouter(prefix="/auth",tags=["Authentication"])
 
@@ -33,3 +37,8 @@ def login(form_data:OAuth2PasswordRequestForm=Depends(),db:Session = Depends(get
     except ValueError as e:
         raise HTTPException(status_code=401,detail=str(e))
 
+@router.post("/refresh",response_model = Token_JWT)
+async def refresh_token(request : RefreshTokenRequest,db:Session = Depends(get_db)):
+    token_service = TokenService(db)
+
+    return token_service.rotate_refresh_token(request.refresh_token)

@@ -10,6 +10,7 @@ from app.core.security import encode_token , decode_token
 from app.models.sessions import Session as UserSession
 from app.schemas.jwt_token import Token_JWT
 from app.schemas.token import Token
+from app.models.user import User
 
 class TokenService:
 
@@ -115,3 +116,31 @@ class TokenService:
             )
 
         return payload, session
+    
+    def rotate_refresh_token(self,refresh_token:str)->Token_JWT:
+
+        payload , session = self.verify_refresh_token(refresh_token)
+
+        session.revoked = True
+        user_id = payload["sub"]
+        user = self.db.get(User,user_id)
+
+        if not user :
+            raise HTTPException(
+                status_code = status.HTTP_401_UNAUTHORIZED,
+                detail = "User not found"
+            )
+        
+        try:
+            new_access_token , _       = self.create_access_token(self.user)
+            new_refresh_token , newjti = self.create_refresh_token(self.user)
+            
+            self.create_session(user = user , refresh_jti = newjti)
+
+            self.db.commit()
+
+            return Token_JWT(new_access_token , new_refresh_token) 
+    
+        except Exception:
+            raise
+      
