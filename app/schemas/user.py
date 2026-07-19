@@ -1,6 +1,7 @@
 from pydantic import BaseModel , EmailStr , Field
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 
 class UserRegisterRequest(BaseModel):
     email : EmailStr
@@ -21,7 +22,7 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class LoginRequest(BaseModel):
-     email : EmailStr
+     username : EmailStr
      password  : str = Field(min_length = 8 , max_length = 128)
 
 class LoginResponse(BaseModel):
@@ -39,3 +40,6 @@ class CurrentUserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token : str

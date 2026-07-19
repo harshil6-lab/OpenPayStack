@@ -7,62 +7,50 @@ from app.schemas.user import UserRegisterRequest , UserResponse , LoginResponse 
 from app.core.security import hash_password
 from app.core.security import verify_password
 
-from app.core.security import create_access_token , create_refresh_token
 from app.schemas.jwt_token import Token_JWT
 from datetime import timedelta , timezone
 from datetime import datetime
+from app.services.token_service import TokenService
 
 
 from config.settings import settings
-def register_user(db:Session,payload: UserRegisterRequest):
-    existing_user = (db.query(User).filter((User.email == payload.email)| (User.username == payload.username)).first())
 
-    if existing_user :
-        raise ValueError("credentials already exists")
+class UserService:
     
-    user = User(
-        email = payload.email,
-        username = payload.username,
-        hashed_password=hash_password(payload.password)
-    )
+    def __init__(self,db:Session):
+        self.db = db
 
-    db.add(user)
-    db.flush()
+    def register_user(self,payload: UserRegisterRequest):
+            existing_user = (self.db.query(User).filter((User.email == payload.email)| (User.username == payload.username)).first())
 
-    wallet = Wallet(user_id = user.id)
-    db.add(wallet)
-    db.commit()
-    db.refresh(user)
+            if existing_user :
+                raise ValueError("credentials already exists")
+            
+            user = User(
+                email = payload.email,
+                username = payload.username,
+                hashed_password=hash_password(payload.password)
+            )
 
-    return user
+            self.db.add(user)
+            self.db.flush()
 
-def login_user(db:Session,payload: LoginRequest):
-    user = db.query(User).filter(User.email == payload.username).first()
-    
-    if not user: 
-        raise ValueError("Invalid credentials")
-    
-    if not verify_password(payload.password,user.hashed_password):
-        raise ValueError("Invalid credentials")
-    
-    claim = {
-        "sub" : str(user.id),
-        "email" : user.email,
-        "role" : user.role
-    }
+            wallet = Wallet(user_id = user.id)
+            self.db.add(wallet)
+            self.db.commit()
+            self.db.refresh(user)
 
-    access_token,_ = create_access_token({
-        "sub" : str(user.id),
-        "email" : user.email,
-        "role" : user.role
-    },expires_delta=timedelta(minutes=15))
+            return user
 
-    refresh_token,refresh_jti = create_refresh_token({
-        "sub" : str(user.id)
-    },expires_delta=timedelta(days = 30))
+    def login_user(self,payload: LoginRequest):
+            user = self.db.query(User).filter(User.email == payload.username).first()
+            
+            if not user: 
+                raise ValueError("Invalid credentials")
+            
+            if not verify_password(payload.password,user.hashed_password):
+                raise ValueError("Invalid credentials")
+            
+            token_service = TokenService(self.db)
 
-    session = UserSession(user_id = user.id , refresh_jti = refresh_jti ,expires_at = datetime.now(timezone.utc)+timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
-    db.add(session)
-    db.commit()
-    db.refresh(session)
-    return Token_JWT(access_token=access_token,refresh_token=refresh_token,token_type="bearer")
+            return token_service.generate_token_pair(user)
