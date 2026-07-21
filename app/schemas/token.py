@@ -1,7 +1,13 @@
 from pydantic import BaseModel, EmailStr
 
-class Token(BaseModel):
-    sub : str
+class AccessTokenLoad(BaseModel):
+    sub   :   str
     email : EmailStr
-    role  :str
-    jti   :str
+    role  : str
+    type  : str
+    jti   : str
+
+class RefreshTokenLoad(BaseModel):
+    sub  : str
+    type : str
+    jti  : str

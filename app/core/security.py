@@ -3,8 +3,9 @@ from datetime import datetime, timedelta, timezone
 from config.settings import settings
 from uuid import uuid4
 from jose import jwt, JWTError
-from app.schemas.token import Token as TokenPayload
 from fastapi import HTTPException, status
+from pydantic import BaseModel
+from typing import Type
 
 
 pwd_context = CryptContext( schemes = ["bcrypt"],deprecated="auto")
@@ -31,7 +32,7 @@ def encode_token(data:dict,expires_delta: timedelta,token_type:str)-> tuple[str,
     token =  jwt.encode(claims, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return token,jti
 
-def decode_token(token:str)->TokenPayload:
+def decode_token(token:str,schema : Type[BaseModel])->dict:
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -45,14 +46,7 @@ def decode_token(token:str)->TokenPayload:
         if not subject:
             raise credentials_exception
         
-        data = {
-                "sub" : payload["sub"],
-                "email" : payload.get("email"),
-                "role" : payload.get("role"),
-                 "jti" : payload.get("jti")
-            }
-        print(data)
-        return TokenPayload(**data)
+        return schema.model_validate(payload)
     
     except JWTError:
         raise credentials_exception   
