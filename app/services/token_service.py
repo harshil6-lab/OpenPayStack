@@ -9,7 +9,7 @@ from config.settings import settings
 from app.core.security import encode_token , decode_token
 from app.models.sessions import Session as UserSession
 from app.schemas.jwt_token import Token_JWT
-from app.schemas.token import Token
+from app.schemas.token import AccessTokenLoad , RefreshTokenLoad
 from app.models.user import User
 
 class TokenService:
@@ -66,24 +66,25 @@ class TokenService:
            raise
     
     def verify_access_token(self, token:str):
-        payload = decode_token(token)
+        payload = decode_token(token,AccessTokenLoad)
         
-        if payload.get("type") != "access":
+        if payload.type != "access":
             raise HTTPException(
                 status_code = status.HTTP_401_UNAUTHORIZED,
                 detail = "Invalid Token Type"
             )
-        return Token(
-            sub = payload["sub"],
-            email = payload["email"],
-            role = payload["role"],
-            jti = payload["jti"]
+        return AccessTokenLoad(
+            sub = payload.sub,
+            email = payload.email,
+            role = payload.role,
+            type = "Access",
+            jti = payload.jti
         )
     
     def verify_refresh_token(self , token : str):
-        payload = decode_token(token)
- 
-        if payload.get("type") != "refresh":
+        payload =decode_token(token,RefreshTokenLoad)
+        
+        if payload.type != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token type",
@@ -92,7 +93,7 @@ class TokenService:
         session = (
             self.db.query(UserSession)
             .filter(
-                UserSession.refresh_jti == payload["jti"]
+                UserSession.refresh_jti == payload.jti
             )
             .first()
         )
@@ -122,7 +123,7 @@ class TokenService:
         payload , session = self.verify_refresh_token(refresh_token)
 
         session.revoked = True
-        user_id = payload["sub"]
+        user_id = payload.sub
         user = self.db.get(User,user_id)
 
         if not user :
@@ -132,14 +133,17 @@ class TokenService:
             )
         
         try:
-            new_access_token , _       = self.create_access_token(self.user)
-            new_refresh_token , newjti = self.create_refresh_token(self.user)
+            new_access_token , _       = self.create_access_token(user)
+            new_refresh_token , newjti = self.create_refresh_token(user)
             
             self.create_session(user = user , refresh_jti = newjti)
 
             self.db.commit()
 
-            return Token_JWT(new_access_token , new_refresh_token) 
+            return Token_JWT(
+                    access_token=new_access_token,
+                    refresh_token=new_refresh_token,
+            )
     
         except Exception:
             raise
