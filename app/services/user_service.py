@@ -11,7 +11,7 @@ from app.schemas.jwt_token import Token_JWT
 from datetime import timedelta , timezone
 from datetime import datetime
 from app.services.token_service import TokenService
-
+from uuid import UUID
 
 from config.settings import settings
 
@@ -54,3 +54,24 @@ class UserService:
             token_service = TokenService(self.db)
 
             return token_service.generate_token_pair(user)
+
+    async def logout(self,refresh_token: str):
+
+         token_service = TokenService(self.db)
+
+         _ , session = token_service.verify_refresh_token(refresh_token)
+
+         session.revoked = True
+
+         self.db.commit()
+
+    async def logout_all_devices(self,user_id : UUID):
+         self.db.query(UserSession).filter(
+              UserSession.user_id == user_id,
+              UserSession.revoked == False).update(
+                   {"revoked" : True},
+                   synchronize_session=False
+              )
+
+         self.db.commit()
+         

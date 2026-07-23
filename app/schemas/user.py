@@ -30,6 +30,9 @@ class LoginResponse(BaseModel):
       refresh_token : str
       token_type : str = "bearer"
 
+class LogoutRequest(BaseModel):
+    refresh_token : str
+
 class CurrentUserResponse(BaseModel):
     id : UUID
     email : str

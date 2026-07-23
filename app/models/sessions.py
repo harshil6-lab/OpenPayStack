@@ -3,6 +3,7 @@ from sqlalchemy import Boolean , DateTime , ForeignKey , String , Column
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+import sqlalchemy as sa
 
 from app.core.database import Base
 
@@ -28,3 +29,5 @@ class Session(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="sessions")
+
+    reuse_detected = Column(Boolean,default=False,nullable=False,server_default=sa.false())

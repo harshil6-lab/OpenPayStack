@@ -19,7 +19,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db=Depends(get_d
     
     token_service = TokenService(db)
     payload = token_service.verify_access_token(token)
-    user = db.query(User).filter(User.id == token.sub).first()
+    user = db.query(User).filter(User.id == payload.sub).first()
 
     if not user :
         raise HTTPException(

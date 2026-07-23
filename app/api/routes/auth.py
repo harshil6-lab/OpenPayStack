@@ -10,6 +10,10 @@ from app.services.user_service import UserService
 from app.services.token_service import TokenService
 from app.schemas.jwt_token import Token_JWT
 from app.schemas.user import RefreshTokenRequest
+from app.schemas.user import LogoutRequest
+
+from app.models.user import User
+from app.api.dependencies import get_current_user 
 
 
 router = APIRouter(prefix="/auth",tags=["Authentication"])
@@ -42,3 +46,14 @@ async def refresh_token(request : RefreshTokenRequest,db:Session = Depends(get_d
     token_service = TokenService(db)
 
     return token_service.rotate_refresh_token(request.refresh_token)
+
+@router.post("/logout",status_code=204)
+async def logout(request : LogoutRequest , db:Session = Depends(get_db)):
+
+    user_service = UserService(db)
+    await user_service.logout(request.refresh_token)
+
+@router.post("/logout_all_devices",status_code = 204)
+async def logoutAllDevices(current_user : User = Depends(get_current_user),db:Session = Depends(get_db)):
+    user_Service = UserService(db)
+    await user_Service.logout_all_devices(current_user.id)

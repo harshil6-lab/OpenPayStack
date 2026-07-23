@@ -105,9 +105,20 @@ class TokenService:
             )
 
         if session.revoked:
+            session.reuse_detected = True
+            self.db.query(UserSession).filter(
+                UserSession.user_id == session.user_id,
+                UserSession.revoked == False
+            ).update(
+                {"revoked" : True},
+                synchronize_session = False
+            )
+
+            self.db.commit()
+
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Session revoked",
+                status_code = 401,
+                detail = "Refresh token reuse detected"
             )
 
         if session.expires_at < datetime.now(timezone.utc):
