@@ -38,23 +38,25 @@ class TokenService:
                             expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
                             token_type = "refresh")
     
-    def create_session(self , user , refresh_jti:str):
+    def create_session(self , user , refresh_jti:str , device ):
         session = UserSession(
             user_id = user.id,
             refresh_jti = refresh_jti,
-            expires_at = datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS)
+            expires_at = datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            ip_address = device.ip_address,
+            user_agent = device.user_agent
         )
 
         self.db.add(session)
 
         return session
     
-    def generate_token_pair(self,user):
+    def generate_token_pair(self,user,device):
        try:
             access_token , _ = self.create_access_token(user)
             refresh_token , refresh_jti = self.create_refresh_token(user)
 
-            self.create_session(user=user , refresh_jti=refresh_jti)
+            self.create_session(user=user , refresh_jti=refresh_jti,device=device)
 
             self.db.commit()
             return Token_JWT(

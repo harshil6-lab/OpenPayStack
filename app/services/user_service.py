@@ -4,6 +4,7 @@ from app.models.wallet import Wallet
 from app.models.sessions import Session as UserSession
 
 from app.schemas.user import UserRegisterRequest , UserResponse , LoginResponse , LoginRequest
+from app.schemas.device import DeviceInfo
 from app.core.security import hash_password
 from app.core.security import verify_password
 
@@ -42,7 +43,7 @@ class UserService:
 
             return user
 
-    def login_user(self,payload: LoginRequest):
+    async def login_user(self,payload: LoginRequest,device : DeviceInfo):
             user = self.db.query(User).filter(User.email == payload.username).first()
             
             if not user: 
@@ -74,4 +75,12 @@ class UserService:
               )
 
          self.db.commit()
+
+    async def get_sessions(self,user_id : UUID):
+           sessions = (
+                self.db.query(UserSession)
+                .filter(UserSession.user_id == user_id)
+                .order_by(UserSession.last_used_at.desc())
+                .all())
+           return sessions
          

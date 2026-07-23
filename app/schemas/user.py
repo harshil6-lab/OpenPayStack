@@ -46,3 +46,4 @@ class CurrentUserResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token : str
+

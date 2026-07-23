@@ -1,7 +1,8 @@
-from fastapi import APIRouter , Depends , HTTPException
+from fastapi import APIRouter , Depends , HTTPException ,  Request
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
+from app.schemas.device import SessionResponse
 
 from app.schemas.user import UserRegisterRequest,UserResponse,LoginResponse,LoginRequest
 from app.api.dependencies import get_current_user
@@ -11,6 +12,7 @@ from app.services.token_service import TokenService
 from app.schemas.jwt_token import Token_JWT
 from app.schemas.user import RefreshTokenRequest
 from app.schemas.user import LogoutRequest
+from app.schemas.device import DeviceInfo
 
 from app.models.user import User
 from app.api.dependencies import get_current_user 
@@ -29,14 +31,19 @@ def register(payload: UserRegisterRequest,db:Session = Depends(get_db)):
         raise HTTPException(status_code=400,detail=str(e))
 
 @router.post("/login",response_model = LoginResponse)
-def login(form_data:OAuth2PasswordRequestForm=Depends(),db:Session = Depends(get_db)):
+async def login(request : Request , form_data:OAuth2PasswordRequestForm=Depends(),db:Session = Depends(get_db)):
     payload = LoginRequest(
         username = form_data.username,
         password = form_data.password
     )
+
+    device = DeviceInfo(
+        ip_address = request.client.host,
+        user_agent = request.headers.get("user-agent")
+    )
     service = UserService(db)
     try : 
-        return service.login_user(payload)
+        return await service.login_user(payload , device )
 
     except ValueError as e:
         raise HTTPException(status_code=401,detail=str(e))
@@ -57,3 +64,9 @@ async def logout(request : LogoutRequest , db:Session = Depends(get_db)):
 async def logoutAllDevices(current_user : User = Depends(get_current_user),db:Session = Depends(get_db)):
     user_Service = UserService(db)
     await user_Service.logout_all_devices(current_user.id)
+
+@router.get("/sessions",response_model = list[SessionResponse] , status_code = status.HTTP_200_OK)
+async def get_session(current_user : User = Depends(get_current_user),
+                      db : Session = Depends(get_db)):
+    service = UserService(db)
+    return await service.get_sessions(current_user)
